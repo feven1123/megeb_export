@@ -1,62 +1,62 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-type Property = {
+interface Product {
   id: number;
-  title: string;
-  description: string;
-  location: string;
-  status: string; // e.g. 'Completed', 'On Process'
+  name: string;
+  category: string;
+  price: number;
+  weight?: string;
   createdAt: string;
   updatedAt: string;
-  image: string;
-  isFeatured?: boolean; // if you are using this field on frontend, even if not in schema
-};
+  image?: string;
+}
 
-export default function DashboardPage() {
+export default function AdminDashboardPage() {
   const [stats, setStats] = useState([
-    { title: "Total Properties", value: 0 },
-    { title: "Completed Projects", value: 0 },
-    { title: "Ongoing Projects", value: 0 },
-    { title: "Featured Properties", value: 0 },
+    { title: 'Total Products', value: 0 },
+    { title: 'Spices', value: 0 },
+    { title: 'Grains', value: 0 },
+    { title: 'Beverages', value: 0 },
   ]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchProducts() {
       try {
-        const res = await fetch('/api/projects');
-        const data: Property[] = await res.json();
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data: Product[] = await res.json();
 
         const total = data.length;
-        const completed = data.filter((p) => p.status === 'Completed').length;
-        const ongoing = data.filter((p) => p.status === 'On Process').length;
-        const featured = data.filter((p) => p.isFeatured).length;
+        const spicesCount = data.filter(p => p.category.toLowerCase().includes('spice')).length;
+        const grainsCount = data.filter(p => p.category.toLowerCase().includes('grain')).length;
+        const beveragesCount = data.filter(p => p.category.toLowerCase().includes('beverage')).length;
 
         setStats([
-          { title: "Total Properties", value: total },
-          { title: "Completed Projects", value: completed },
-          { title: "Ongoing Projects", value: ongoing },
-          { title: "Featured Properties", value: featured },
+          { title: 'Total Products', value: total },
+          { title: 'Spices', value: spicesCount },
+          { title: 'Grains', value: grainsCount },
+          { title: 'Beverages', value: beveragesCount },
         ]);
       } catch (error) {
-        console.error('Failed to load dashboard data:', error);
+        console.error('Error loading dashboard data:', error);
       }
-    };
+    }
 
-    fetchData();
+    fetchProducts();
   }, []);
 
   return (
     <div className="p-6 space-y-6">
-      {/* Top Stat Cards */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((item, index) => (
-          <Card key={index}>
+        {stats.map((item, i) => (
+          <Card key={i}>
             <CardHeader>
-              <CardTitle className="text-md text-gray-600">{item.title}</CardTitle>
+              <CardTitle className="text-gray-600 text-md">{item.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{item.value}</p>
@@ -65,26 +65,26 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Sales Chart */}
+      {/* Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Sales Overview</CardTitle>
+          <CardTitle>Monthly Orders Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart
               data={[
-                { name: 'Jan', sales: 400 },
-                { name: 'Feb', sales: 300 },
-                { name: 'Mar', sales: 500 },
-                { name: 'Apr', sales: 700 },
-                { name: 'May', sales: 600 },
+                { name: 'Jan', orders: 12 },
+                { name: 'Feb', orders: 18 },
+                { name: 'Mar', orders: 9 },
+                { name: 'Apr', orders: 22 },
+                { name: 'May', orders: 27 },
               ]}
             >
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="sales" fill="#4f46e5" />
+              <Bar dataKey="orders" fill="#4f46e5" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
